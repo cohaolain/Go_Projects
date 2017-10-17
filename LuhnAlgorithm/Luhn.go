@@ -34,13 +34,6 @@ func isValid(num int) bool {
 		array[i]=num%10
 		num/=10
 	}
-
-	/* Print the number as it's stored in the array
-	for i:=length-1;i>=0;i-- {
-		fmt.Print(array[i])
-	}
-	fmt.Println()
-	*/	
 	
 	// Apply the algorithm
 	count := 0
