@@ -55,7 +55,7 @@ func isValid(num int) bool {
 		count+=array[i]
 	}
 	
-	// Run final check and print the results
+	// Run final check and return the results
 	if count%10==0 {
 		return true
 	} else {
