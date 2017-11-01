@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	fmt.Printf("\n\tWelcome to Ciarán Ó hAoláin's Base Conversion program, written in Go!\n\n\tEnter number in any base between base 1 and base 36 in the format 'number base', \n\tfollowed by return, to convert to base 10!\n\n\t")
+	fmt.Printf("\n\tWelcome to Ciarán Ó hAoláin's Base Conversion program, written in Go!\n\n\tEnter number in any base between base 2 and base 36 in the format 'number base', \n\tfollowed by return, to convert to base 10!\n\n\t")
 	var input string
 	var base int
 	fmt.Scanf("%s %d\n", &input, &base)
@@ -28,17 +28,17 @@ func main() {
 	}
 
 	// Print answer
-	if base != 1 {
-		fmt.Printf("\n\tAnswer: %d\n\n\t", toInt(input, genBase(base)))
-	} else {
-		fmt.Printf("\n\tAnswer: %d\n\n\t", len(input))
-	}
+	fmt.Printf("\n\tAnswer: %d\n\n\t", toInt(input, genBase(base)))
 
 }
 
 func toInt(input, source string) (outputInt int) {
 
 	baseSource := len(source)
+
+	if baseSource == 1 {
+		return len(input)
+	}
 
 	for j, indexInSource := len(input)-1, -1; j >= 0; j-- {
 		indexInSource = strings.Index(source, string(input[j]))
