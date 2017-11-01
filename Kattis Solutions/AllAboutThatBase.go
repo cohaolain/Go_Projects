@@ -25,7 +25,7 @@ func main() {
 				max = high
 			}
 		}
-		// Include special case (base 1) if input only consists of the digit 1
+		// Consider special case (base 1) where input only consists of the digit 1
 		for j, b1 := 0, true; j < len(testCase); j++ {
 			if string(testCase[j]) != "1" {
 				b1 = false
@@ -47,12 +47,17 @@ func main() {
 		answers := ""
 		for j := max; j <= 36; j++ {
 
+			// Convert all values in expression to integers for current base
 			n1, n2, nAns := toInt(s1, genBase(j)), toInt(s2, genBase(j)), toInt(answer, genBase(j))
+
+			// Consider scenarios where integer division will lead to a false positive
 			if operation == "/" {
 				if n1%n2 != 0 {
 					continue
 				}
 			}
+
+			// Check if expression is true
 			if nAns == opByString(operation, n1, n2) {
 				solutionExists = true
 				if j != 36 {
@@ -63,6 +68,7 @@ func main() {
 			}
 		}
 
+		// Print results for expression
 		if !solutionExists {
 			fmt.Println("invalid")
 		} else {
