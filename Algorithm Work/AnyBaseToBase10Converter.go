@@ -9,14 +9,14 @@ import (
 
 func main() {
 
-	fmt.Printf("\n\tWelcome to Ciarán Ó hAoláin's Base Conversion program, written in Go!\n\n\tEnter number in any base between base 2 and base 36 in the format 'number base', \n\tfollowed by return, to convert to base 10!\n\n\t")
+	fmt.Printf("\n\tWelcome to Ciarán Ó hAoláin's Base Conversion program, written in Go!\n\n\tEnter number in any base between base 1 and base 36 in the format 'number base', \n\tfollowed by return, to convert to base 10!\n\n\t")
 	var input string
 	var base int
 	fmt.Scanf("%s %d\n", &input, &base)
 	input = strings.ToLower(input)
 
 	// Error checking
-	if base > 36 || base < 2 {
+	if base > 36 || base < 1 {
 		fmt.Print("\n\n\t	Error:\tIllegal base provided\n\n")
 		os.Exit(1)
 	}
@@ -28,7 +28,11 @@ func main() {
 	}
 
 	// Print answer
-	fmt.Printf("\n\tAnswer: %d\n\n\t", toInt(input, genBase(base)))
+	if base != 1 {
+		fmt.Printf("\n\tAnswer: %d\n\n\t", toInt(input, genBase(base)))
+	} else {
+		fmt.Printf("\n\tAnswer: %d\n\n\t", len(input))
+	}
 
 }
 
@@ -54,6 +58,10 @@ func intPower(a, b int) int {
 func genBase(base int) string {
 
 	mostBases := "0123456789abcdefghijklmnopqrstuvwxyz"
-	return mostBases[0:base]
+	if base == 1 {
+		return "1"
+	} else {
+		return mostBases[0:base]
+	}
 
 }
