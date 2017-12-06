@@ -1,3 +1,5 @@
+// Brute force method for finding Turing machines which output record length repetition of a given sequence
+
 package main
 
 import (
