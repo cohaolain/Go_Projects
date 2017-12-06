@@ -13,13 +13,13 @@ func main() {
 
 	fmt.Println("Unsorted:\t", array)
 
-	bubbleSort(array)
+	bubbleSortInts(array)
 
 	fmt.Println("Sorted:\t\t", array)
 
 }
 
-func bubbleSort(input []int) []int {
+func bubbleSortInts(input []int) []int {
 
 	for cont := true; cont; {
 		cont = false
