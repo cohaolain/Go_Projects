@@ -49,13 +49,12 @@ func intPower(a, b int) int {
 
 }
 
-func reverseString(s string) string {
+func reverseString(s string) (sNew string) {
 
-	var sNew string
 	for i := len(s) - 1; i >= 0; i-- {
 		sNew += string(s[i])
 	}
 
-	return sNew
+	return
 
 }
