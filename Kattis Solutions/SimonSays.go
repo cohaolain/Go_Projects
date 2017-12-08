@@ -3,6 +3,7 @@ package main
 import ( "fmt"
 		"bufio"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -14,10 +15,10 @@ func main() {
 
 		scanner.Scan()
 		line := scanner.Text()
-		if len(line)<10 {
+		if len(line)<=10 {
 			continue
 		}
-		if line[:10]=="Simon says" {
+		if strings.ToLower(line[:10])=="Simon says" {
 			fmt.Println(line[11:])
 		}
 
