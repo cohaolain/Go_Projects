@@ -1,4 +1,7 @@
-// Brute force method for finding Turing machines which output record length repetition of a given sequence
+// Turing machine simulator, checks for a sequence of 1010... on the tape. Machine and initial tape provided in binary.
+// Includes force method for finding Turing machines which output record length repetition of a given sequence
+
+// Written for specific specifications given in assignment, with intent of generalisation in the future.
 
 package main
 
@@ -14,171 +17,8 @@ import (
 	"time"
 )
 
-func main() {
-
-	// Set up a random seed based on the current time
-	rand.Seed(time.Now().UnixNano())
-
-	// Set the minimum record for the program to start printing out results at
-	// seqRec := 242
-	seqRec := 0
-
-	// Set up machine testing parameters
-	initTape := "101010101010101010101010101010" // Sets the first bits on the tape
-	numStates := 7
-	numSymbols := 2
-	tapeStartPos := 0
-	tapeMoves := []int8{-1, 1}
-	sequence := "10"
-	forcePositionZero := true
-	forceToEnd := false
-	allowTail := true
-
-	// Remove IDE boolean warnings
-	if false {
-		forcePositionZero, forceToEnd, allowTail = false, false, false
-	}
-
-	// Set up multi-threading concurrency parameters
-	numCPUs := runtime.NumCPU()
-	runtime.GOMAXPROCS(numCPUs)
-
-	// Set the number of threads to use (default is the number of logical processors available)
-	numConcur := numCPUs
-
-	// Case test
-	if false {
-		alpha := make(chan string, 2)
-		// binary := "1010111011100000100011111101110010010101001101010110001011000001100010"
-		binary := "1110010010010010110010101101000100111011000110101100001010111110101000"
-		initTape = "011000011111100100100011010111"
-		o1, steps := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha)
-		fmt.Println("steps: ", steps)
-		if len(o1)==0 {
-			fmt.Println("machine didn't halt")
-		}
-		if len(o1) >= len(sequence) {
-			maxSeqRec := checkOutput(sequence, o1, forcePositionZero, forceToEnd, allowTail)
-			reportRecord(binary, o1, maxSeqRec)
-		} else {
-			fmt.Println("invalid")
-		}
-
-	}
-
-	// Tape testing
-	initTapeInt := 0
-	for initTapeInt>=0 && initTapeInt <= int(math.Pow(2, 30)) && false {
-		if initTapeInt%(numConcur*50000)==0 {
-			fmt.Printf("%.5f%%\n", (float64(initTapeInt)*100)/math.Pow(2, 30))
-		}
-		alpha := make(chan string, 2*numConcur)
-		tried := make([]string, 4)
-		var initTape string
-		for i:=0; i<numConcur; i++ {
-			initTape = toBase(genBase(2), initTapeInt)
-			tried[i]=initTape
-			for len(initTape)<30 {
-				initTape = "0" + initTape
-			}
-			if initTapeInt<0 {
-				os.Exit(2)
-			}
-			go runTuringMachine("0001001110100000000111010011010010101011111110111100110001001001100111", initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha)
-			initTapeInt++
-		}
-		for i:=0; i<numConcur; i++ {
-
-			bin, output := <-alpha, <-alpha
-
-			if len(output) >= len(sequence) {
-
-				if maxSeqRec := checkOutput(sequence, output, forcePositionZero, forceToEnd, allowTail); maxSeqRec > seqRec {
-					seqRec = maxSeqRec
-					reportRecord(bin, output, maxSeqRec)
-					fmt.Printf("Int is between %d and %d\n", initTapeInt-numConcur, initTapeInt-1)
-				}
-
-			}
-		}
-	}
-
-	printTimes := false
-	// const testCases = 1000
-
-	// Fix variable warning workaround
-	if false {
-		printTimes = true
-	}
-
-	// Machine testing with concurrency
-	t1 := time.Now()
-	// for x := 0; x<testCases; {
-	for true {
-
-		// Set up a channel to receive answers from the concurrent threads
-		answers := make(chan string, 2*numConcur)
-
-		// Run the specified number of Turing Machines simultaneously
-		for i := 0; i < numConcur; i++ {
-			go runTuringMachine(gen70bit(), initTape, numStates, numSymbols, tapeStartPos, tapeMoves, answers)
-		}
-
-		// Runs once for each instantiated Turing Machine
-		for i := 0; i < numConcur; i++ {
-
-			// Receive the Turing machine and its resultant tape
-			binary := <-answers
-			out := <-answers
-
-			// Start running checks if the Turing machine halted
-			if len(out) >= len(sequence) {
-
-				// If the sequence appears for a longer period than the current record, set new record and report it
-				if maxSeqRec := checkOutput(sequence, out, forcePositionZero, forceToEnd, allowTail); maxSeqRec > seqRec {
-					seqRec = maxSeqRec
-					reportRecord(binary, out, maxSeqRec)
-				}
-
-			}
-
-		}
-
-	}
-	if printTimes {
-		fmt.Printf("That took %v with concurrency\n", time.Since(t1))
-	}
-
-	// Machine testing with NO concurrency
-	t2 := time.Now()
-	// for x := 0; x<testCases; x++ {
-	for false {
-
-		// Set up a channel
-		answers := make(chan string, 2*numConcur)
-		binary := gen70bit()
-
-		out, _ := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, answers)
-
-		// Start running checks if the Turing machine halted
-		if len(out) >= len(sequence) {
-
-			// If the sequence appears for a longer period than the current record, set new record and report it
-			if maxSeqRec := checkOutput(sequence, out, forcePositionZero, forceToEnd, allowTail); maxSeqRec > seqRec {
-				seqRec = maxSeqRec
-				reportRecord(binary, out, maxSeqRec)
-			}
-
-		}
-
-	}
-	if printTimes {
-		fmt.Printf("That took %v without concurrency\n", time.Since(t2))
-	}
-
-}
-
-func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, tapeStartPos int, tapeMoves []int8, chanOut chan string) (output string, steps int) {
+func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, tapeStartPos int, tapeMoves []int8,
+	chanOut chan string) (output string, steps int) {
 
 	backup := machineBinary
 
@@ -328,8 +168,177 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 
 }
 
-func gen70bit() (binary string) {
-	for i := 0; i < 70; i++ {
+func main() {
+
+	// Set up a random seed based on the current time
+	rand.Seed(time.Now().UnixNano())
+
+	// Set the minimum record for the program to start printing out results at
+	// seqRec := 242
+	seqRec := 0
+
+	// Set up machine testing parameters
+	initTape := "101010101010101010101010101010" // Sets the first bits on the tape
+	maxBitsTapeSpecified := 30
+	numStates := 7
+	numSymbols := 2
+	tapeStartPos := 0
+	tapeMoves := []int8{-1, 1}
+	sequence := "10"
+	forcePositionZero := true
+	forceToEnd := false
+	allowTail := true
+
+	// Remove IDE boolean warnings
+	if false {
+		forcePositionZero, forceToEnd, allowTail = false, false, false
+	}
+
+	// Set up multi-threading concurrency parameters
+	numCPUs := runtime.NumCPU()
+	runtime.GOMAXPROCS(numCPUs)
+
+	// Set the number of threads to use (default is the number of logical processors available)
+	numConcur := numCPUs
+
+	printTimes := false
+
+	// Fix variable warning workaround
+	if false {
+		printTimes = true
+	}
+
+	t1 := time.Now()
+
+	// Machine testing with concurrency
+	for true {
+
+		// Set up a channel to receive answers from the concurrent threads
+		answers := make(chan string, 2*numConcur)
+
+		// Run the specified number of Turing Machines simultaneously
+		for i := 0; i < numConcur; i++ {
+			go runTuringMachine(genXBits(70), initTape, numStates, numSymbols, tapeStartPos, tapeMoves, answers)
+		}
+
+		// Runs once for each instantiated Turing Machine
+		for i := 0; i < numConcur; i++ {
+
+			// Receive the Turing machine and its resultant tape
+			binary := <-answers
+			out := <-answers
+
+			// Start running checks if the Turing machine halted
+			if len(out) >= len(sequence) {
+
+				// If the sequence appears for a longer period than the current record, set new record and report it
+				if maxSeqRec := checkOutput(sequence, out, forcePositionZero, forceToEnd, allowTail); maxSeqRec > seqRec {
+					seqRec = maxSeqRec
+					reportRecord(binary, out, maxSeqRec)
+				}
+
+			}
+
+		}
+
+	}
+
+	if printTimes {
+		fmt.Printf("That took %v with concurrency\n", time.Since(t1))
+	}
+
+	// Machine testing with NO concurrency
+	t2 := time.Now()
+	for false {
+
+		// Set up a channel
+		answers := make(chan string, 2*numConcur)
+		binary := genXBits(70)
+
+		out, _ := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, answers)
+
+		// Start running checks if the Turing machine halted
+		if len(out) >= len(sequence) {
+
+			// If the sequence appears for a longer period than the current record, set new record and report it
+			if maxSeqRec := checkOutput(sequence, out, forcePositionZero, forceToEnd, allowTail); maxSeqRec > seqRec {
+				seqRec = maxSeqRec
+				reportRecord(binary, out, maxSeqRec)
+			}
+
+		}
+
+	}
+	if printTimes {
+		fmt.Printf("That took %v without concurrency\n", time.Since(t2))
+	}
+
+	// Case test
+	if false {
+		alpha := make(chan string, 2)
+		binary := ""
+		initTape = ""
+		o1, steps := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha)
+		fmt.Println("steps: ", steps)
+		if len(o1) == 0 {
+			fmt.Println("machine didn't halt")
+		}
+		if len(o1) >= len(sequence) {
+			maxSeqRec := checkOutput(sequence, o1, forcePositionZero, forceToEnd, allowTail)
+			reportRecord(binary, o1, maxSeqRec)
+		} else {
+			fmt.Println("invalid")
+		}
+
+	}
+
+	// Tape testing
+	initTapeInt := 0
+	for initTapeInt >= 0 && initTapeInt <= int(math.Pow(float64(numSymbols), float64(maxBitsTapeSpecified))) && false {
+		binary := ""
+
+		// Progress print-out
+		if initTapeInt%(numConcur*50000) == 0 {
+			fmt.Printf("%.5f%%\n", (float64(initTapeInt)*100)/math.Pow(2, 30))
+		}
+
+		alpha := make(chan string, 2*numConcur)
+		tried := make([]string, 4)
+		var initTape string
+		for i := 0; i < numConcur; i++ {
+			initTape = toBase(genBase(2), initTapeInt)
+			tried[i] = initTape
+
+			// Ensure generation of proper tape length
+			for len(initTape) < maxBitsTapeSpecified {
+				initTape = "0" + initTape
+			}
+			if initTapeInt < 0 {
+				os.Exit(2)
+			}
+			go runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha)
+			initTapeInt++
+		}
+		for i := 0; i < numConcur; i++ {
+
+			bin, output := <-alpha, <-alpha
+
+			if len(output) >= len(sequence) {
+
+				if maxSeqRec := checkOutput(sequence, output, forcePositionZero, forceToEnd, allowTail); maxSeqRec > seqRec {
+					seqRec = maxSeqRec
+					reportRecord(bin, output, maxSeqRec)
+					fmt.Println(tried)
+				}
+
+			}
+		}
+	}
+
+}
+
+func genXBits(n int) (binary string) {
+	for i := 0; i < n; i++ {
 		binary += strconv.Itoa(rand.Intn(2))
 	}
 	return
@@ -357,7 +366,7 @@ func reportRecord(binary, out string, record int) {
 
 func checkOutput(sequence, out string, forcePositionZero, forceToEnd, allowTail bool) (recordLen int) {
 
-	if len(out)%len(sequence)!=0 && forceToEnd {
+	if len(out)%len(sequence) != 0 && forceToEnd {
 		return
 	}
 
@@ -373,7 +382,7 @@ func checkOutput(sequence, out string, forcePositionZero, forceToEnd, allowTail 
 			currentRec += len(sequence)
 			for index := i + len(sequence); index < len(out); index += len(sequence) {
 				if index+len(sequence) > len(out) {
-					if out[index:]==sequence[:len(out[index:])] && allowTail {
+					if out[index:] == sequence[:len(out[index:])] && allowTail {
 						currentRec += len(out[index:])
 					}
 					break
@@ -384,7 +393,7 @@ func checkOutput(sequence, out string, forcePositionZero, forceToEnd, allowTail 
 					if allowTail {
 						for k := range out[index:] {
 							if out[index+k:index+1+k] != "0" {
-								recordLen=0
+								recordLen = 0
 								return
 							}
 						}
@@ -448,4 +457,3 @@ func genBase(base int) string {
 		return mostBases[0:base]
 	}
 }
-

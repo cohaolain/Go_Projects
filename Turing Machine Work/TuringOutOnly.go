@@ -1,5 +1,6 @@
 // Turing machine simulator, checks for a sequence of 1010... on the tape. Machine and initial tape provided in binary.
 // Written for specific specifications given in assignment, with intent of generalisation in the future.
+// Some functionality commented out for ease of use (tape and state access heat maps)
 
 package main
 
@@ -9,6 +10,7 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -23,6 +25,8 @@ func main() {
 	forceToEnd := false
 	allowTail := true
 
+	pauseBetweenTapePrints := 25// Makes the machine output readable while it's running
+
 	// Remove IDE boolean warnings
 	if false {
 		forcePositionZero, forceToEnd, allowTail = false, false, false
@@ -30,7 +34,7 @@ func main() {
 
 	// Multiple test cases
 	fmt.Println("\n")
-	for i := 0; i<1; i++ {
+	for true {
 		fmt.Println("\tEnter 70 bit (7 state, 2 symbol, 2 directional) machine, and then enter the first 30 bits on the tape:\n")
 		alpha := make(chan string, 2)
 		var binary, initTape string
@@ -41,7 +45,7 @@ func main() {
 		fmt.Scanf("%s\n", &initTape)
 		// */
 		// o1, steps, hMapTape, hMapStates := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha)
-		o1, steps, _, _ := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha)
+		o1, steps, _, _ := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha, pauseBetweenTapePrints)
 		if steps>0 {
 			fmt.Println("\tSteps:\t\t" + strconv.Itoa(steps))
 		}
@@ -70,9 +74,11 @@ func main() {
 	}
 }
 
-func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, tapeStartPos int, tapeMoves []int8, chanOut chan string) (output string, steps int, heatMapRet map[int]int, heatMapRetStates map[int]int) {
+func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, tapeStartPos int, tapeMoves []int8, chanOut chan string, pause int) (output string, steps int, heatMapRet map[int]int, heatMapRetStates map[int]int) {
 
 	backup := machineBinary
+
+	tapePrints := true
 
 	bitsForStates := len(toBase(genBase(2), numStates))
 	bitsForSymbols := len(toBase(genBase(2), numSymbols-1))
@@ -192,11 +198,13 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 		if tapePosition < 0 {
 			tapePosition = 0
 		}
-
-		for _, val := range tape {
-			fmt.Print(val)
+		if tapePrints {
+			for _, val := range tape {
+				fmt.Print(val)
+			}
+			time.Sleep(time.Duration(pause) * time.Millisecond)
+			fmt.Println()
 		}
-		fmt.Println()
 
 		// Check for halt instruction
 		if currentState == numStates {
@@ -338,4 +346,3 @@ func genBase(base int) string {
 		return mostBases[0:base]
 	}
 }
-
