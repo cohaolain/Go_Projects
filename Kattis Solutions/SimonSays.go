@@ -18,7 +18,7 @@ func main() {
 		if len(line)<=10 {
 			continue
 		}
-		if strings.ToLower(line[:10])=="Simon says" {
+		if strings.ToLower(line[:10])=="simon says" {
 			fmt.Println(line[11:])
 		}
 
