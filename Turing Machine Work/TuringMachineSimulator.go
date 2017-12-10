@@ -25,7 +25,8 @@ func main() {
 	forceToEnd := false
 	allowTail := true
 
-	pauseBetweenTapePrints := 25// Makes the machine output readable while it's running
+	pauseBetweenTapePrints := 0// Makes the machine output readable while it's running, tape won't print if set to -1
+	printHeatMaps := false
 
 	// Remove IDE boolean warnings
 	if false {
@@ -43,24 +44,23 @@ func main() {
 		fmt.Scanf("%s\n", &binary)
 		fmt.Print("\tTape:\t\t")
 		fmt.Scanf("%s\n", &initTape)
-		// */
-		// o1, steps, hMapTape, hMapStates := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha)
-		o1, steps, _, _ := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha, pauseBetweenTapePrints)
+		o1, steps, hMapTape, hMapStates := runTuringMachine(binary, initTape, numStates, numSymbols, tapeStartPos, tapeMoves, alpha, pauseBetweenTapePrints)
 		if steps>0 {
 			fmt.Println("\tSteps:\t\t" + strconv.Itoa(steps))
 		}
-		/*
-		fmt.Println("\tTape heat map:")
-		for i := 0; i < len(o1); i++ {
-			fmt.Printf("\t%d\t%d\n", i, hMapTape[i])
-		}
 
-		fmt.Println("\tState heat map:")
+		if printHeatMaps {
+			fmt.Println("\tTape heat map:")
+			for i := 0; i < len(o1); i++ {
+				fmt.Printf("\t%d\t%d\n", i, hMapTape[i])
+			}
 
-		for i := 0; i < numStates; i++ {
-			fmt.Printf("\t%d\t%d\n", i, hMapStates[i])
+			fmt.Println("\tState heat map:")
+
+			for i := 0; i < numStates; i++ {
+				fmt.Printf("\t%d\t%d\n", i, hMapStates[i])
+			}
 		}
-		*/
 
 		if len(o1) == 0 {
 			fmt.Println("\tThe machine didn't halt.")
@@ -78,7 +78,7 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 
 	backup := machineBinary
 
-	tapePrints := true
+	tapePrints := false
 
 	bitsForStates := len(toBase(genBase(2), numStates))
 	bitsForSymbols := len(toBase(genBase(2), numSymbols-1))
@@ -139,6 +139,14 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 	}
 
 	// fmt.Println(states)
+	
+	// Slightly neater
+	for i:=0; i<len(states); i++ {
+
+		fmt.Printf("\tState #%d:\t", i)
+		fmt.Println(states[i])
+
+	}
 
 	/*
 		// Print Turing machine
@@ -198,7 +206,7 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 		if tapePosition < 0 {
 			tapePosition = 0
 		}
-		if tapePrints {
+		if tapePrints && pause >= 0 {
 			for _, val := range tape {
 				fmt.Print(val)
 			}
@@ -217,14 +225,6 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 			heatMapRet = heatMap
 			heatMapRetStates = heatMapStates
 
-			// Slightly neater
-			for i:=0; i<len(states); i++ {
-
-				fmt.Printf("\tState #%d:\t", i)
-				fmt.Println(states[i])
-
-			}
-
 			return
 		}
 
@@ -237,13 +237,6 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 
 	return
 
-}
-
-func gen70bit() (binary string) {
-	for i := 0; i < 70; i++ {
-		binary += strconv.Itoa(rand.Intn(2))
-	}
-	return
 }
 
 func reportRecord(binary, out string, record int) {
