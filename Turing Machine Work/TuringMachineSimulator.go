@@ -7,7 +7,6 @@ package main
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -77,8 +76,6 @@ func main() {
 func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, tapeStartPos int, tapeMoves []int8, chanOut chan string, pause int) (output string, steps int, heatMapRet map[int]int, heatMapRetStates map[int]int) {
 
 	backup := machineBinary
-
-	tapePrints := false
 
 	bitsForStates := len(toBase(genBase(2), numStates))
 	bitsForSymbols := len(toBase(genBase(2), numSymbols-1))
@@ -206,7 +203,7 @@ func runTuringMachine(machineBinary, initialTape string, numStates, numSymbols, 
 		if tapePosition < 0 {
 			tapePosition = 0
 		}
-		if tapePrints && pause >= 0 {
+		if pause >= 0 {
 			for _, val := range tape {
 				fmt.Print(val)
 			}
