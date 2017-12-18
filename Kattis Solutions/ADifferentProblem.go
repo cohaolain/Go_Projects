@@ -1,19 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math"
+	"os"
+	"strconv"
 )
 
 func main() {
-
-	for {
-		var n1, n2 int
-		fmt.Scanf("%d %d\n", &n1, &n2)
-		if n1 == 0 {
-			break
-		}
-		fmt.Println(int(math.Abs(float64(n1)-float64(n2))))
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Split(bufio.ScanWords)
+	for scanner.Scan() {
+		a, _ := strconv.Atoi(scanner.Text())
+		scanner.Scan()
+		b, _ := strconv.Atoi(scanner.Text())
+		fmt.Println(int(math.Abs(float64(a - b))))
 	}
-
 }
